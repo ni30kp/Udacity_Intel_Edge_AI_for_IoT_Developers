@@ -55,13 +55,13 @@ Utilize the classroom workspace, or refer to the relevant instructions for your 
 
 ##### Model Selection & Custom Layers
  
-      Object Detection Model Zoo (https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md) contains many pre-trained         models on the coco dataset. Intel openVINO already contains extensions for custom layers used in TensorFlow Object Detection Model Zoo.
+      Object Detection Model Zoo """https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md""" contains many pre-           trained models on the coco dataset. Intel openVINO already contains extensions for custom layers used in TensorFlow Object Detection Model Zoo.
 
 Else for Downloading the model from the GitHub repository of Tensorflow Object Detection Model Zoo by the following command:
 
-      ```
+      ----
       wget http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
-      ```
+      ----
       
 Extracting the tar.gz file using the following commands:
 
