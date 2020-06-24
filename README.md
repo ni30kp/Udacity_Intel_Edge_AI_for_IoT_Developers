@@ -78,9 +78,8 @@ For Changing the directory to the extracted folder of the downloaded models we c
 The model can't be the existing models provided by Intel. So, converting the TensorFlow model to Intermediate Representation (IR) or OpenVINO IR format. The command used is given below:
 
      ```
-     python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb--                  tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json  --                        tensorflow_object_detection_api_pipeline_config faster_rcnn_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o folder_name
-     ```
-
+     python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json --tensorflow_object_detection_api_pipeline_config faster_rcnn_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o folder_name
+     ``` 
 ### Difference in Model Performance 
 
 Model-1: Ssd_inception_v2_coco_2018_01_28
@@ -88,7 +87,7 @@ Model-1: Ssd_inception_v2_coco_2018_01_28
 Converted the model into intermediate representation by using the following command. Further, this model lacked accuracy as it didn't detect people correctly in the video.
 
      ```
-     python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model ssd_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --                          tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json --                              tensorflow_object_detection_api_pipeline_config ssd_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o ssd_inception
+        python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model ssd_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json --tensorflow_object_detection_api_pipeline_config ssd_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o ssd_inception                           
      ```
 
 Model-2: Faster_rcnn_inception_v2_coco_2018_01_28
@@ -96,7 +95,7 @@ Model-2: Faster_rcnn_inception_v2_coco_2018_01_28
 Converted the model to intermediate representation using the following command. Model -2 i.e. Faster_rcnn_inception_v2_coco, performed really well in the output video. After using a threshold of 0.4, the model works better than all the previous approaches.
 
     ```
-    python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --                 --tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json                           --tensorflow_object_detection_api_pipeline_config faster_rcnn_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o                                 faster_rcnn_inception_v2_coco_2018_01_28
+    python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json  --tensorflow_object_detection_api_pipeline_config faster_rcnn_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o faster_rcnn_inception_v2_coco_2018_01_28                                                 
     ```
     
 ##### Comparison
@@ -105,10 +104,13 @@ Converted the model to intermediate representation using the following command. 
 
 In terms of latency, several insights were drawn. It could be clearly seen that the Latency (microseconds) is very low in case of OpenVINO.
 
-| Model/Framework                              Latency (microseconds)              |
-| -----------------------------------         |:---------------------------------: |
-| ssd_inception_v2_coco (OpenVINO)            -> 166                               |
-| faster_rcnn_inception_v2_coco (OpenVINO)    -> 898                               |
+
+  | Model/Framework                              Latency (microseconds)              |
+  | -----------------------------------         |:---------------------------------: |
+  | ssd_inception_v2_coco (OpenVINO)            -> 166                               |
+  | faster_rcnn_inception_v2_coco (OpenVINO)    -> 898                               |
+
+
 
 #### Advantages 
   Edge Computing is regarded as ideal for operations with extreme latency concerns. On the other hand Cloud Computing is more suitable for projects and organizations   which deal with massive data storage.So,for medium scale companies that have budget limitations can use edge computing to save financial cost.  
