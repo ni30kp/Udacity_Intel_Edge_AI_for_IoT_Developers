@@ -105,10 +105,10 @@ Converted the model to intermediate representation using the following command. 
 In terms of latency, several insights were drawn. It could be clearly seen that the Latency (microseconds) is very low in case of OpenVINO.
 
 
-  | Model/Framework                         |Latency (microseconds)|
-  | ----------------------------------------|----------------------|
-  | ssd_inception_v2_coco (OpenVINO)        | 166                  |
-  | faster_rcnn_inception_v2_coco (OpenVINO)| 898                  |
+  | Models                                  |Latency (ms)|
+  | ----------------------------------------|------------|
+  | ssd_inception_v2_coco (OpenVINO)        | 166        |
+  | faster_rcnn_inception_v2_coco (OpenVINO)| 898        |
 
 
 
