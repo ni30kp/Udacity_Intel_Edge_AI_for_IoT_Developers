@@ -62,24 +62,32 @@ Else for Downloading the model from the GitHub repository of Tensorflow Object D
       ```
       wget http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
       ```
+      
 Extracting the tar.gz file using the following commands:
+
       ```
       tar -xvf faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
       ```
+      
 Make separate directory by following commands:
+
       ```
       mkdir ssd_mo_model
       mkdir faster_rcnn_inception_v2_coco_2018_01_28
       ```
+      
 For Changing the directory to the extracted folder of the downloaded models we can use these commands:
+
       ```
       cd faster_rcnn_inception_v2_coco_2018_01_28
       ```
+      
 The model can't be the existing models provided by Intel. So, converting the TensorFlow model to Intermediate Representation (IR) or OpenVINO IR format. The command used is given below:
 
      ```
      python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config  /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json --tensorflow_object_detection_api_pipeline_config faster_rcnn_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels -o folder_name
      ``` 
+     
 ### Difference in Model Performance 
 
 Model-1: Ssd_inception_v2_coco_2018_01_28
