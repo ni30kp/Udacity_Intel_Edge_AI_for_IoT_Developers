@@ -53,6 +53,70 @@ Utilize the classroom workspace, or refer to the relevant instructions for your 
 - [Mac](./mac-setup.md)
 - [Windows](./windows-setup.md)
 
+### Explaining Model Selection & Custom Layers
+ 
+TensorFlow Object Detection Model Zoo (https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md) contains many pre-trained models on the coco dataset. Ssd_inception_v2_coco and faster_rcnn_inception_v2_coco performed good as compared to rest of the models, but, in this project, faster_rcnn_inception_v2_coco is used which is fast in detecting people with less errors. Intel openVINO already contains extensions for custom layers used in TensorFlow Object Detection Model Zoo.
+
+Downloading the model from the GitHub repository of Tensorflow Object Detection Model Zoo by the following command:
+
+```
+wget http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
+```
+Extracting the tar.gz file by the following command:
+
+```
+tar -xvf faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
+```
+Changing the directory to the extracted folder of the downloaded model:
+
+```
+cd faster_rcnn_inception_v2_coco_2018_01_28
+```
+The model can't be the existing models provided by Intel. So, converting the TensorFlow model to Intermediate Representation (IR) or OpenVINO IR format. The command used is given below:
+
+```
+python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json
+```
+
+### Comparing Model Performance
+
+Model-1: Ssd_inception_v2_coco_2018_01_28
+
+Converted the model to intermediate representation using the following command. Further, this model lacked accuracy as it didn't detect people correctly in the video. Made some alterations to the threshold for increasing its accuracy but the results were not fruitful.
+```
+python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model ssd_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
+```
+
+Model-2: Faster_rcnn_inception_v2_coco_2018_01_28
+
+Converted the model to intermediate representation using the following command. Model -2 i.e. Faster_rcnn_inception_v2_coco, performed really well in the output video. After using a threshold of 0.4, the model works better than all the previous approaches.
+```
+python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json
+```
+##### Comparison
+
+Comparing the two models i.e. ssd_inception_v2_coco and faster_rcnn_inception_v2_coco in terms of latency and memory, several insights were drawn. It could be clearly seen that the Latency (microseconds) and Memory (Mb) decreases in case of OpenVINO as compared to plain Tensorflow model which is very useful in case of OpenVINO applications.
+
+| Model/Framework                             | Latency (microseconds)            | Memory (Mb) |
+| -----------------------------------         |:---------------------------------:| -------:|
+| ssd_inception_v2_coco (plain TF)            | 222                               | 538    |
+| ssd_inception_v2_coco (OpenVINO)            | 155                               | 329    |
+| faster_rcnn_inception_v2_coco (plain TF)    | 1281                              | 562    |
+| faster_rcnn_inception_v2_coco (OpenVINO)    | 889                               | 281    |
+
+##### Differences in Edge and Cloud computing
+
+Edge Computing is regarded as ideal for operations with extreme latency concerns. Thus, medium scale companies that have budget limitations can use edge computing to save financial resources. Cloud Computing is more suitable for projects and organizations which deal with massive data storage. 
+
+### Model Use Cases
+
+This application could keep a check on the number of people in a particular area and could be helpful where there is restriction on the number of people present in a particular area. Further, with some updations, this could also prove helpful in the current COVID-19 scenario i.e. to keep a check on the number of people in the frame.
+
+### Effects on End user needs
+
+Various insights could be drawn on the model by testing it with different videos and analyzing the model performance on low light input videos. This would be an important factor in determining the best model for the given scenario.
+
+
 ### Install npm
 
 There are three components that need to be running in separate terminals for this application to work:
