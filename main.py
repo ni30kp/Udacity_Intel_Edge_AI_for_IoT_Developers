@@ -72,69 +72,58 @@ def build_argparser():
                         "(0.55 by default)")
     return parser
 
-def draw_outputs(coords, frame, initial_w, initial_h, x, k):
-        # Draw output
-        # print('Draw Output...')
-        current_count = 0     
-        ed = x
-        for obj in coords[0][0]:
-            # Draw bounding box for object when it's probability is more than the specified threshold
-            if obj[2] > prob_threshold:
-                xmin = int(obj[3] * initial_w)
-                ymin = int(obj[4] * initial_h)
-                xmax = int(obj[5] * initial_w)
-                ymax = int(obj[6] * initial_h)
-                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 1)
-                current_count = current_count + 1
-                #print(current_count)
-                
-                c_x = frame.shape[1]/2
-                c_y = frame.shape[0]/2    
-                mid_x = (xmax + xmin)/2
-                mid_y = (ymax + ymin)/2
-                
-                # Calculating distance 
-                ed =  math.sqrt(math.pow(mid_x - c_x, 2) +  math.pow(mid_y - c_y, 2) * 1.0) 
-                k = 0
+def make_outputs(coords, frame, in_w, in_h, x, t):
+        count = 0     
+        exe = x
+        for i in coords[0][0]:
+            if i[2] > prob_threshold:
+                x_min = int(i[3] * in_w)
+                y_min = int(i[4] * in_h)
+                x_max = int(i[5] * in_w)
+                y_max = int(i[6] * in_h)
+                cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 0, 255), 1)
+                count += 1
+                let_x = frame.shape[1]/2
+                let_y = frame.shape[0]/2    
+                mid_x = (x_max + x_min)/2
+                mid_y = (y_max + y_min)/2
+                exe =  math.sqrt(math.pow(mid_x - let_x, 2) +  math.pow(mid_y - let_y, 2) * 1.0) 
+                t = 0
 
-        if current_count < 1:
-            k += 1
-            
-        if ed>0 and k < 10:
-            current_count = 1 
-            k += 1 
-            if k > 100:
-                k = 0
+        if count < 1:
+            t += 1        
+        if exe>0 and t < 10:
+            count = 1 
+            t += 1 
+            if t > 100:
+                t = 0
                 
-        return frame, current_count, ed, k
+        return frame, count, exe, t
 
 def infer_on_stream(args, client):
     # Initialise the class
-    infer_network = Network()
+    inference_network = Network()
+    
     # Set Probability threshold for detections
     model=args.model
     video_file=args.input    
     extn=args.cpu_extension
     device=args.device
-    #prob_threshold = args.prob_threshold
-    
-    # Flag for the input image
-    single_img_flag = False
-
+    single_img = False
     start_time = 0
     cur_request_id = 0
     last_count = 0
     total_count = 0
     
-    # Load the model through `infer_network` 
-    n, c, h, w = infer_network.load_model(model, device, 1, 1, cur_request_id, extn)[1]
+    # Loading of the model through `infer_network` 
+    w, x, y, z = inference_network.load_model(model, device, 1, 1, cur_request_id, extn)[1]
 
     # Handle the input stream
-    if video_file == 'CAM': # Check for live feed
+    if video_file == 'CAM':
         input_stream = 0
 
     elif video_file.endswith('.jpg') or video_file.endswith('.bmp') :    # Check for input image
-        single_img_flag = True
+        single_img = True
         input_stream = video_file
 
     else:     # Check for video file
@@ -148,12 +137,12 @@ def infer_on_stream(args, client):
     except Exception as e:
         print("Something else went wrong with the video file: ", e)
         
-    global initial_w, initial_h, prob_threshold
+    global in_w, in_h, prob_threshold
     total_count = 0  
     duration = 0
     
-    initial_w = cap.get(3)
-    initial_h = cap.get(4)
+    in_w = cap.get(3)
+    in_h = cap.get(4)
     prob_threshold = args.prob_threshold
     temp = 0
     tk = 0
@@ -165,28 +154,27 @@ def infer_on_stream(args, client):
         if not flag:
             break
         key_pressed = cv2.waitKey(60)
-        # Pre-process the image as needed
-        # Start async inference
-        image = cv2.resize(frame, (w, h))
+        # Pre-process of the image as needed
+        image = cv2.resize(frame, (z, y))
         # Change data layout from HWC to CHW
         image = image.transpose((2, 0, 1))
-        image = image.reshape((n, c, h, w))
+        image = image.reshape((w, x, y, z))
         
         # Start asynchronous inference for specified request
         inf_start = time.time()
-        infer_network.exec_net(cur_request_id, image)
+        inference_network.exec_net(cur_request_id, image)
         
         color = (255,0,0)
 
         # Wait for the result
-        if infer_network.wait(cur_request_id) == 0:
+        if inference_network.wait(cur_request_id) == 0:
             det_time = time.time() - inf_start
 
             # Get the results of the inference request 
-            result = infer_network.get_output(cur_request_id)
+            result = inference_network.get_output(cur_request_id)
             
             # Draw Bounting Box
-            frame, current_count, d, tk = draw_outputs(result, frame, initial_w, initial_h, temp, tk)
+            frame, current_count, d, tk = make_outputs(result, frame, in_w, in_h, temp, tk)
             
             # Printing Inference Time 
             inf_time_message = "Inference time: {:.3f}ms".format(det_time * 1000)
@@ -214,13 +202,13 @@ def infer_on_stream(args, client):
                 (text_width, text_height) = cv2.getTextSize(txt2, cv2.FONT_HERSHEY_COMPLEX, 0.5, thickness=1)[0]
                 text_offset_x = 10
                 text_offset_y = frame.shape[0] - 10
-                # make the coords of the box with a small padding of two pixels
+                # coords of the box with a small padding of two pixels
                 box_coords = ((text_offset_x, text_offset_y + 2), (text_offset_x + text_width, text_offset_y - text_height - 2))
                 cv2.rectangle(frame, box_coords[0], box_coords[1], (0, 0, 0), cv2.FILLED)
                 
                 cv2.putText(frame, txt2, (text_offset_x, text_offset_y), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
             
-            client.publish("person", json.dumps({"count": current_count})) # People Count
+            client.publish("person", json.dumps({"count": current_count}))
 
             last_count = current_count
             temp = d
@@ -231,22 +219,18 @@ def infer_on_stream(args, client):
         # Send the frame to the FFMPEG server
         sys.stdout.buffer.write(frame)  
         sys.stdout.flush()
-        
-        #Save the Image
-        if single_img_flag:
-            cv2.imwrite('output_image.jpg', frame)
+        if single_img:
+            cv2.imwrite('output.jpg', frame)
        
     cap.release()
     cv2.destroyAllWindows()
     client.disconnect()
-    infer_network.clean()
-
+    inference_network.clean()
+    
 def main():
-    # Grab command line args
     args = build_argparser().parse_args()
-    # Connect to the MQTT server
     client = connect_mqtt()
-    # Perform inference on the input stream
+    # Perform inference on the input-stream
     infer_on_stream(args, client)
 
 
