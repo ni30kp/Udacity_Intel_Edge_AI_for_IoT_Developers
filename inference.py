@@ -28,7 +28,7 @@ from openvino.inference_engine import IENetwork, IECore
 class Network:
     def __init__(self):
         self.net = None
-        ie = None
+        self.plugin = None
         self.input_blob = None
         self.out_blob = None
         self.net_plugin = None
@@ -39,24 +39,22 @@ class Network:
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
         
         log.info("Creating Inference Engine...")
-        ie = IECore()
+        self.plugin = IECore()
         if extn and 'CPU' in device:
-            ie.add_extension(extn, "CPU")
-                   
-        # Read IR
+            self.plugin.add_extension(extn, "CPU")
         log.info("Reading IR...")
         self.net = IENetwork(model=model_xml, weights=model_bin)
             
         if "CPU" in device:
-            supported_layers = ie.query_network(self.net, "CPU")
+            supported_layers = self.plugin.query_network(self.net, "CPU")
             not_supported_layers = [l for l in self.net.layers.keys() if l not in supported_layers]
             if len(not_supported_layers) != 0:
                 sys.exit(1)
             
         if num_requests == 0:
-            self.net_plugin = ie.load_network(network=self.net, device_name=device)
+            self.net_plugin = self.plugin.load_network(network=self.net, device_name=device)
         else:
-            self.net_plugin = ie.load_network(network=self.net, device_name=device, num_requests=num_requests)
+            self.net_plugin = self.plugin.load_network(network=self.net, device_name=device, num_requests=num_requests)
 
         self.input_blob = next(iter(self.net.inputs))
         self.out_blob = next(iter(self.net.outputs))
@@ -65,7 +63,7 @@ class Network:
         assert len(self.net.outputs) == output_size, \
             "Supports only {} output topologies".format(len(self.net.outputs))
 
-        return ie, self.get_input_shape()
+        return self.plugin, self.get_input_shape()
 
 
     def get_input_shape(self):
@@ -76,9 +74,8 @@ class Network:
         return self.net_plugin
 
 
-    def wait(self, request_id):
-        infer_status = self.net_plugin.requests[request_id].wait(-1)
-        return infer_status
+    def wait(self, request_id): 
+        return self.net_plugin.requests[request_id].wait(-1)
 
     def get_output(self, request_id, output=None):
         if output:
@@ -86,7 +83,3 @@ class Network:
         else:
             res = self.net_plugin.requests[request_id].outputs[self.out_blob]
         return res
-
-    def clean(self):
-        del self.net_plugin
-        del self.net
